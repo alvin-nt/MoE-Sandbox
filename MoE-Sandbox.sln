@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoE-Sandbox", "MoE-Sandbox\MoE-Sandbox.csproj", "{90745D9D-6D07-4754-8E9F-B39048C42F3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HookTest", "HookTest\HookTest.csproj", "{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HookTestRunner", "HookTestRunner\HookTestRunner.csproj", "{650A7B71-C71B-4E1F-9B7D-611802DF8004}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
