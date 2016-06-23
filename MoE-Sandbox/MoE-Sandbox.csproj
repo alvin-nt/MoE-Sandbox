@@ -31,11 +31,29 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TestHook|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\TestHook\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EasyHook, Version=2.7.5870.0, Culture=neutral, PublicKeyToken=4b580fca19d0b0c5, processorArchitecture=MSIL">
       <HintPath>..\packages\EasyHook.2.7.5870.9\lib\net40\EasyHook.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.3.4\lib\net40\NLog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework, Version=3.2.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.3.2.1\lib\net40\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
     <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +78,22 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="HookingException.cs" />
+    <Compile Include="Virtualization\Filesystem\FilesystemHook.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\NativeTypes.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\NativeTypes\NtStatusCode.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\NativeTypes\ObjectAttributes.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\NativeTypes\WinStatusCode.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\Utils.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\AccessMask.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\FileInformationClass.cs" />
+    <Compile Include="Virtualization\HookEntryPoint.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\FileType.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\NativeApi.Delegates.cs" />
+    <Compile Include="Virtualization\Filesystem\Host\NativeApi.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

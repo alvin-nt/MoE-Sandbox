@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoE-Sandbox", "MoE-Sandbox\MoE-Sandbox.csproj", "{90745D9D-6D07-4754-8E9F-B39048C42F3D}"
 EndProject
@@ -9,26 +9,38 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HookTest", "HookTest\HookTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HookTestRunner", "HookTestRunner\HookTestRunner.csproj", "{650A7B71-C71B-4E1F-9B7D-611802DF8004}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestApp", "TestApp", "{FEF45D62-2D87-4D63-A351-366DA51F2A58}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{AD5ABFFC-4C37-44B4-A7EE-BF42682F2FFB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		TestHook|Any CPU = TestHook|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90745D9D-6D07-4754-8E9F-B39048C42F3D}.TestHook|Any CPU.ActiveCfg = TestHook|Any CPU
 		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.TestHook|Any CPU.ActiveCfg = TestHook|Any CPU
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4}.TestHook|Any CPU.Build.0 = TestHook|Any CPU
 		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.TestHook|Any CPU.ActiveCfg = TestHook|Any CPU
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004}.TestHook|Any CPU.Build.0 = TestHook|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FDDD0AFB-A157-4C7F-8F6B-F2F6F3DD2DD4} = {FEF45D62-2D87-4D63-A351-366DA51F2A58}
+		{650A7B71-C71B-4E1F-9B7D-611802DF8004} = {FEF45D62-2D87-4D63-A351-366DA51F2A58}
 	EndGlobalSection
 EndGlobal

@@ -11,14 +11,19 @@ namespace HookTestRunner
     class Program
     {
         public static string ChannelName = null;
-        public static string CurrentDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
+
+        public static string CurrentDir =
+            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
+
         static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+
+            int processId = -1;
             try
             {
                 RemoteHooking.IpcCreateServer<RemoteMon>(
                     ref ChannelName, WellKnownObjectMode.Singleton);
-                int processId = -1;
 
                 Console.Write("Please type your process name here: ");
                 string processName = Console.ReadLine();
@@ -35,11 +40,13 @@ namespace HookTestRunner
                     Console.ReadLine();
                     return;
                 }
-                RemoteHooking.Inject(processId, InjectionOptions.DoNotRequireStrongName, CurrentDir + "HookTest.dll", CurrentDir + "HookTest.dll", new object[] { ChannelName });
+                RemoteHooking.Inject(processId, InjectionOptions.DoNotRequireStrongName, CurrentDir + "HookTest.dll",
+                    CurrentDir + "HookTest.dll", new object[] {ChannelName});
             }
             catch (Exception ex)
             {
-                Console.WriteLine("There was an error while connecting to target: " + Environment.NewLine + "{0}", ex.ToString());
+                Console.WriteLine("There was an error while connecting to target: " + Environment.NewLine + "{0}",
+                    ex.ToString());
                 Console.ReadLine();
             }
 
@@ -47,6 +54,11 @@ namespace HookTestRunner
             {
                 Thread.Sleep(1000);
             }
+        }
+
+        static void OnProcessExit(object sender, EventArgs e)
+        {
+            
         }
     }
 }

@@ -1,18 +1,21 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using EasyHook;
 
 namespace HookTest
 {
-    public class Main : IEntryPoint
+    public class Main : IEntryPoint, IDisposable
     {
         static string ChannelName;
-        RemoteMon Interface;
+        readonly RemoteMon Interface;
 
         LocalHook CreateFileAHook;
         LocalHook CreateFileWHook;
+        LocalHook _regEnumKeyExAHook;
+        LocalHook _regEnumKeyExWHook;
 
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern IntPtr CreateFileA(
@@ -65,12 +68,13 @@ namespace HookTest
         {
             try
             {
-                ((Main)HookRuntimeInfo.Callback).Interface.GotFileNameA(filename);
-                return CreateFileA(filename, access, share, securityAttributes, creationDisposition, flagsAndAttributes, templateFile);
+                ((Main) HookRuntimeInfo.Callback).Interface.GotFileNameA(filename);
+                return CreateFileA(filename, access, share, securityAttributes, creationDisposition, flagsAndAttributes,
+                    templateFile);
             }
             catch (Exception ex)
             {
-                ((Main)HookRuntimeInfo.Callback).Interface.ErrorHandler(ex);
+                ((Main) HookRuntimeInfo.Callback).Interface.ErrorHandler(ex);
                 return IntPtr.Zero;
             }
         }
@@ -86,22 +90,23 @@ namespace HookTest
         {
             try
             {
-                ((Main)HookRuntimeInfo.Callback).Interface.GotFileNameW(filename);
-                return CreateFileW(filename, access, share, securityAttributes, creationDisposition, flagsAndAttributes, templateFile);
+                ((Main) HookRuntimeInfo.Callback).Interface.GotFileNameW(filename);
+                return CreateFileW(filename, access, share, securityAttributes, creationDisposition, flagsAndAttributes,
+                    templateFile);
             }
             catch (Exception ex)
             {
-                ((Main)HookRuntimeInfo.Callback).Interface.ErrorHandler(ex);
+                ((Main) HookRuntimeInfo.Callback).Interface.ErrorHandler(ex);
                 return IntPtr.Zero;
             }
         }
 
-        public Main(RemoteHooking.IContext InContext, string InChannelName)
+        public Main(RemoteHooking.IContext inContext, string inChannelName)
         {
             try
             {
-                Interface = RemoteHooking.IpcConnectClient<RemoteMon>(InChannelName);
-                ChannelName = InChannelName;
+                Interface = RemoteHooking.IpcConnectClient<RemoteMon>(inChannelName);
+                ChannelName = inChannelName;
                 Interface.IsInstalled(RemoteHooking.GetCurrentProcessId());
             }
             catch (Exception ex)
@@ -110,15 +115,17 @@ namespace HookTest
             }
         }
 
-        public void Run(RemoteHooking.IContext InContext, string InChannelName)
+        public void Run(RemoteHooking.IContext inContext, string inChannelName)
         {
             try
             {
-                CreateFileWHook = LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileW"), new TCreateFileW(hkCreateFileW), this);
-                CreateFileWHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+                CreateFileWHook = LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileW"),
+                    new TCreateFileW(hkCreateFileW), this);
+                CreateFileWHook.ThreadACL.SetExclusiveACL(new[] {0});
 
-                CreateFileAHook = LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileA"), new TCreateFileA(hkCreateFileA), this);
-                CreateFileAHook.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
+                CreateFileAHook = LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileA"),
+                    new TCreateFileA(hkCreateFileA), this);
+                CreateFileAHook.ThreadACL.SetExclusiveACL(new[] {0});
             }
             catch (Exception ex)
             {
@@ -137,6 +144,27 @@ namespace HookTest
             while (true)
             {
                 Thread.Sleep(1000);
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                CreateFileAHook.Dispose();
+            }
+            catch (Exception)
+            {
+                // just ignore
+            }
+
+            try
+            {
+                CreateFileWHook.Dispose();
+            }
+            catch (Exception)
+            {
+                // just ignore
             }
         }
     }
