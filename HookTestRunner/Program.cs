@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using EasyHook;
 using HookTest;
+using System.Reflection;
 
 namespace HookTestRunner
 {
@@ -13,7 +14,7 @@ namespace HookTestRunner
         public static string ChannelName = null;
 
         public static string CurrentDir =
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
+            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
 
         static void Main(string[] args)
         {
@@ -26,9 +27,9 @@ namespace HookTestRunner
                     ref ChannelName, WellKnownObjectMode.Singleton);
 
                 Console.Write("Please type your process name here: ");
-                string processName = Console.ReadLine();
+                var processName = Console.ReadLine();
 
-                foreach (Process p in Process.GetProcessesByName(processName))
+                foreach (var p in Process.GetProcessesByName(processName))
                 {
                     processId = p.Id;
                     break;
@@ -41,7 +42,7 @@ namespace HookTestRunner
                     return;
                 }
                 RemoteHooking.Inject(processId, InjectionOptions.DoNotRequireStrongName, CurrentDir + "HookTest.dll",
-                    CurrentDir + "HookTest.dll", new object[] {ChannelName});
+                    CurrentDir + "HookTest.dll", ChannelName);
             }
             catch (Exception ex)
             {

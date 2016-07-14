@@ -4,24 +4,34 @@ namespace HookTest
 {
     public class RemoteMon : MarshalByRefObject
     {
-        public void IsInstalled(int InClientPID)
+        public bool Ping()
         {
-            Console.WriteLine("Successfully injected into PID {0}.", InClientPID);
-        }
-        
-        public void GotFileNameW(String FileName)
-        {
-            Console.WriteLine("[CreateFileW] Opened file: {0}.", FileName);
+            return true;
         }
 
-        public void GotFileNameA(String FileName)
+        public void IsInstalled(int clientPid)
         {
-            Console.WriteLine("[CreateFileA] Opened file: {0}.", FileName);
+            Log($"Successfully injected into PID {clientPid}.");
+        }
+        
+        public void GotFileNameW(string fileName)
+        {
+            Log($"[CreateFileW] Opened file: {fileName}.");
+        }
+
+        public void GotFileNameA(string fileName)
+        {
+            Log($"[CreateFileA] Opened file: {fileName}.");
         }
 
         public void ErrorHandler(Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            Log(ex.ToString());
+        }
+
+        public void Log(string text)
+        {
+            Console.WriteLine($"[{DateTime.Now}] {text}");
         }
     }
 }

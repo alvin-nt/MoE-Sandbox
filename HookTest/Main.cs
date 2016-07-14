@@ -9,7 +9,7 @@ namespace HookTest
 {
     public class Main : IEntryPoint, IDisposable
     {
-        static string ChannelName;
+        string ChannelName;
         readonly RemoteMon Interface;
 
         LocalHook CreateFileAHook;
@@ -107,12 +107,22 @@ namespace HookTest
             {
                 Interface = RemoteHooking.IpcConnectClient<RemoteMon>(inChannelName);
                 ChannelName = inChannelName;
-                Interface.IsInstalled(RemoteHooking.GetCurrentProcessId());
+                Initialize(inContext, inChannelName);
             }
             catch (Exception ex)
             {
                 Interface.ErrorHandler(ex);
             }
+        }
+
+        /// <summary>
+        /// Initializes the hook: assigns all passed parameters from the <see cref="RemoteHooking"/>
+        /// </summary>
+        /// <param name="inContext">the hook context</param>
+        /// <param name="inChannelName">Contains the name of the .NET Remoting 'channel' to connect to</param>
+        public void Initialize(RemoteHooking.IContext inContext, string inChannelName)
+        {
+            Interface?.IsInstalled(RemoteHooking.GetCurrentProcessId());
         }
 
         public void Run(RemoteHooking.IContext inContext, string inChannelName)
@@ -141,7 +151,7 @@ namespace HookTest
                 Interface.ErrorHandler(ex);
             }
 
-            while (true)
+            while (Interface.Ping())
             {
                 Thread.Sleep(1000);
             }
@@ -149,6 +159,8 @@ namespace HookTest
 
         public void Dispose()
         {
+            Interface?.Log("Removing hooks...");
+
             try
             {
                 CreateFileAHook.Dispose();
@@ -166,6 +178,8 @@ namespace HookTest
             {
                 // just ignore
             }
+
+            Interface?.Log("Hooks removed!");
         }
     }
 }
