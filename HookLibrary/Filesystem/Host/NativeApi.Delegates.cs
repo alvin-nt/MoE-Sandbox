@@ -1,16 +1,16 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using MoE_Sandbox.Virtualization.Filesystem.Host.NativeTypes;
+using HookLibrary.Filesystem.Host.NativeTypes;
 
-namespace MoE_Sandbox.Virtualization.Filesystem.Host
+namespace HookLibrary.Filesystem.Host
 {
     public static partial class NativeApi
     {
         /// <summary>
         /// Represents all delegates for the native system calls that is going to be hooked.        
         /// </summary>
-        public static class Delegates
+        public class Delegates
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
             public delegate NtStatusCode NtCreateFile(
@@ -50,6 +50,20 @@ namespace MoE_Sandbox.Virtualization.Filesystem.Host
             public delegate NtStatusCode NtQueryFullAttributesFile(
                 ref ObjectAttributes objectAttributes, // in
                 out IntPtr attributes // out
+                );
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
+            public delegate NtStatusCode NtOpenSymbolicLinkObject(
+                out IntPtr handle, // out
+                AccessMask access, // in
+                ref ObjectAttributes objectAttributes // in
+                );
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
+            public delegate NtStatusCode NtOpenDirectoryObject(
+                out IntPtr handle, // out
+                AccessMask access, // in
+                ref ObjectAttributes objectAttributes // in
                 );
         }
     }

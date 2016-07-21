@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using EasyHook;
-using MoE_Sandbox.Virtualization.Filesystem;
-using MoE_Sandbox.Virtualization.Filesystem.Host;
 
-namespace MoE_Sandbox.Virtualization
+namespace HookLibrary
 {
     public class HookEntryPoint : IEntryPoint, IDisposable
     {

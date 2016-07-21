@@ -2,9 +2,10 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using MoE_Sandbox.Virtualization.Filesystem.Host.NativeTypes;
+using System.Security.Policy;
+using HookLibrary.Filesystem.Host.NativeTypes;
 
-namespace MoE_Sandbox.Virtualization.Filesystem.Host
+namespace HookLibrary.Filesystem.Host
 {
     /// <summary>
     /// Contains calls for Windows native API.
@@ -40,17 +41,18 @@ namespace MoE_Sandbox.Virtualization.Filesystem.Host
             NtFileCreateDisposition createDisposition,
             NtFileOptions createOptions,
             IntPtr eaBuffer,
-            uint eaLength);
+            uint eaLength
+            );
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
         [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatusCode NtOpenFile(
-                out IntPtr handle,
-                AccessMask access,
-                ref ObjectAttributes objectAttributes,
-                out IoStatusBlock ioStatusBlock,
-                FileShare share,
-                NtFileOptions openOptions);
+            out IntPtr handle,
+            AccessMask access,
+            ref ObjectAttributes objectAttributes,
+            out IoStatusBlock ioStatusBlock,
+            FileShare share,
+            NtFileOptions openOptions);
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
         [ResourceExposure(ResourceScope.Machine)]
@@ -72,6 +74,30 @@ namespace MoE_Sandbox.Virtualization.Filesystem.Host
             out IntPtr attributes // out
             );
 
-        // TODO: file mappers, for getting information about root directory.
+        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
+        [ResourceExposure(ResourceScope.Machine)]
+        public static extern NtStatusCode NtOpenDirectoryObject(
+            out IntPtr handle, // out
+            AccessMask access, // in
+            ref ObjectAttributes objectAttributes // in
+            );
+
+        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
+        [ResourceExposure(ResourceScope.Machine)]
+        public static extern NtStatusCode NtOpenSymbolicLinkObject(
+            out IntPtr handle, // out
+            AccessMask access, // in
+            ref ObjectAttributes objectAttributes // in
+            );
+
+        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
+        [ResourceExposure(ResourceScope.Machine)]
+        public static extern NtStatusCode NtQueryInformationFile(
+            IntPtr handle,
+            out IoStatusBlock ioStatusBlock,
+            out IntPtr fileInformation,
+            uint length,
+            FileInformationClass informationClass
+            );
     }
 }

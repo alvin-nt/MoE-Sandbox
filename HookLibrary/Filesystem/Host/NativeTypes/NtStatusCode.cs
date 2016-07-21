@@ -1,4 +1,4 @@
-﻿namespace MoE_Sandbox.Virtualization.Filesystem.Host.NativeTypes
+﻿namespace HookLibrary.Filesystem.Host.NativeTypes
 {
     /// <summary>
     /// Represents status codes from calls of functions from ntdll.dll.

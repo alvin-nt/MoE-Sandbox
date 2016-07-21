@@ -1,4 +1,4 @@
-﻿namespace MoE_Sandbox.Virtualization.Filesystem.Host
+﻿namespace HookLibrary.Filesystem.Host
 {
     /// <summary>
     /// A value that specifies which structure to use to query or set information for a file object.

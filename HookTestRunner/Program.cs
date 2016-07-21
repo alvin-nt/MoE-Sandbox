@@ -6,12 +6,14 @@ using System.Threading;
 using EasyHook;
 using HookTest;
 using System.Reflection;
+using System.Runtime.Remoting.Channels.Ipc;
 
 namespace HookTestRunner
 {
     class Program
     {
         public static string ChannelName = null;
+        private static IpcServerChannel _channel;
 
         public static string CurrentDir =
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
@@ -23,7 +25,7 @@ namespace HookTestRunner
             int processId = -1;
             try
             {
-                RemoteHooking.IpcCreateServer<RemoteMon>(
+                _channel = RemoteHooking.IpcCreateServer<RemoteMon>(
                     ref ChannelName, WellKnownObjectMode.Singleton);
 
                 Console.Write("Please type your process name here: ");
@@ -47,7 +49,7 @@ namespace HookTestRunner
             catch (Exception ex)
             {
                 Console.WriteLine("There was an error while connecting to target: " + Environment.NewLine + "{0}",
-                    ex.ToString());
+                    ex);
                 Console.ReadLine();
             }
 
@@ -57,9 +59,9 @@ namespace HookTestRunner
             }
         }
 
-        static void OnProcessExit(object sender, EventArgs e)
+        private static void OnProcessExit(object sender, EventArgs e)
         {
-            
+            _channel.StopListening(null);
         }
     }
 }

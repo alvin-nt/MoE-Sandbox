@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
-using MoE_Sandbox.Virtualization;
 
-namespace MoE_Sandbox
+namespace HookLibrary
 {
     [Serializable]
     public class HookingException : SystemException

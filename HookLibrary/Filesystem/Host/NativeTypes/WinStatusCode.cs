@@ -1,4 +1,4 @@
-﻿namespace MoE_Sandbox.Virtualization.Filesystem.Host.NativeTypes
+﻿namespace HookLibrary.Filesystem.Host.NativeTypes
 {
     /// <summary>
     /// Static error codes resulting from native API calls.

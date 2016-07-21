@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MoE_Sandbox.Virtualization.Filesystem.Host
+namespace HookLibrary.Filesystem.Host
 {
     /// <summary>
     /// Represents generic access mask for resource access

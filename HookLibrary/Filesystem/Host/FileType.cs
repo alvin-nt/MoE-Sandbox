@@ -1,4 +1,4 @@
-﻿namespace MoE_Sandbox.Virtualization.Filesystem.Host
+﻿namespace HookLibrary.Filesystem.Host
 {
     public enum FileType : uint
     {
