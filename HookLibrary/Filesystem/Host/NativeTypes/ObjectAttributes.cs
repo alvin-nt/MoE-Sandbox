@@ -45,7 +45,7 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         /// <summary>
         /// If this flag is specified, by using the object handle, to a routine that creates objects and if 
         /// that object already exists, the routine should open that object. Otherwise, the routine creating 
-        /// the object returns an <see cref="NtStatusCode"/> code of <see cref="NtStatusCode.ObjectNameCollision"/>.
+        /// the object returns an <see cref="NtStatus"/> code of <see cref="NtStatus.ObjectNameCollision"/>.
         /// </summary>
         OpenIf = 0x00000080,
 
@@ -100,7 +100,7 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         public IntPtr RootDirectoryHandle;
 
         /// <summary>
-        /// Pointer to the object name, which is a <see cref="SafeUnicodeString"/> object.
+        /// Pointer to the object name, which is a <see cref="UnicodeString"/> object.
         /// </summary>
         private IntPtr _objectName;
 
@@ -122,9 +122,9 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         /// <summary>
         /// Name of the object, referred by <see cref="_objectName"/>.
         /// </summary>
-        public SafeUnicodeString ObjectName
+        public UnicodeString ObjectName
         {
-            get { return (SafeUnicodeString) Marshal.PtrToStructure(_objectName, typeof(SafeUnicodeString)); }
+            get { return (UnicodeString) Marshal.PtrToStructure(_objectName, typeof(UnicodeString)); }
             set
             {
                 if (_objectName == IntPtr.Zero)
@@ -133,7 +133,7 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
                 }
                 else
                 {
-                    Marshal.DestroyStructure(_objectName, typeof(SafeUnicodeString));
+                    Marshal.DestroyStructure(_objectName, typeof(UnicodeString));
                     Marshal.ReAllocHGlobal(_objectName, (IntPtr)Marshal.SizeOf(value));
                 }
 
@@ -224,7 +224,7 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         {
             if (_objectName != IntPtr.Zero)
             {
-                Marshal.DestroyStructure(_objectName, typeof(SafeUnicodeString));
+                Marshal.DestroyStructure(_objectName, typeof(UnicodeString));
                 Marshal.FreeHGlobal(_objectName);
                 _objectName = IntPtr.Zero;
             }

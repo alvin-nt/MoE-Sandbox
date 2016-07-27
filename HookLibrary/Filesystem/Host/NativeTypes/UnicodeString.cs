@@ -12,7 +12,7 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
     ///     Source: http://www.pinvoke.net/default.aspx/Structures/UNICODE_STRING.html
     /// </remarks>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 0)]
-    public struct SafeUnicodeString : IDisposable
+    public struct UnicodeString : IDisposable
     {
         /// <summary>
         /// Length of the string.
@@ -30,10 +30,10 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         private readonly IntPtr _buffer;
 
         /// <summary>
-        /// Create a <see cref="SafeUnicodeString"/> from a <see cref="string"/> object.
+        /// Create a <see cref="UnicodeString"/> from a <see cref="string"/> object.
         /// </summary>
         /// <param name="str"><see cref="string"/> object to be converted.</param>
-        public SafeUnicodeString(string str)
+        public UnicodeString(string str)
         {
             Length = (ushort) (str.Length * UnicodeEncoding.CharSize);
             MaximumLength = (ushort) (Length + UnicodeEncoding.CharSize); // add 1 char for NULL

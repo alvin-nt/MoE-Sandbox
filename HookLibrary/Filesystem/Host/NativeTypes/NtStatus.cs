@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents status codes from calls of functions from ntdll.dll.
     /// </summary>
-    public enum NtStatusCode : uint
+    public enum NtStatus : uint
     {
         // Success
         Success = 0x00000000,

@@ -13,7 +13,7 @@ namespace HookLibrary.Filesystem.Host
         public class Delegates
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtCreateFile(
+            public delegate NtStatus NtCreateFile(
                 out IntPtr handle,
                 AccessMask access,
                 ref ObjectAttributes objectAttributes,
@@ -27,7 +27,7 @@ namespace HookLibrary.Filesystem.Host
                 uint eaLength);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtOpenFile(
+            public delegate NtStatus NtOpenFile(
                 out IntPtr handle,
                 AccessMask access,
                 ref ObjectAttributes objectAttributes,
@@ -36,31 +36,31 @@ namespace HookLibrary.Filesystem.Host
                 NtFileOptions openOptions);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtDeleteFile(
+            public delegate NtStatus NtDeleteFile(
                 ref ObjectAttributes objectAttributes // in
                 );
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtQueryAttributesFile(
+            public delegate NtStatus NtQueryAttributesFile(
                 ref ObjectAttributes objectAttributes, // in
                 ref FileBasicInformation fileBasicInfo // out
                 );
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtQueryFullAttributesFile(
+            public delegate NtStatus NtQueryFullAttributesFile(
                 ref ObjectAttributes objectAttributes, // in
                 out IntPtr attributes // out
                 );
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtOpenSymbolicLinkObject(
+            public delegate NtStatus NtOpenSymbolicLinkObject(
                 out IntPtr handle, // out
                 AccessMask access, // in
                 ref ObjectAttributes objectAttributes // in
                 );
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
-            public delegate NtStatusCode NtOpenDirectoryObject(
+            public delegate NtStatus NtOpenDirectoryObject(
                 out IntPtr handle, // out
                 AccessMask access, // in
                 ref ObjectAttributes objectAttributes // in

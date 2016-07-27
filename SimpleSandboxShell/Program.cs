@@ -5,7 +5,11 @@ using System.Text;
 
 namespace SimpleSandboxShell
 {
-    public class Class1
+    public class Program
     {
+        static void Main(string[] args)
+        {
+            
+        }
     }
 }

@@ -14,8 +14,6 @@ namespace HookTest
 
         LocalHook CreateFileAHook;
         LocalHook CreateFileWHook;
-        LocalHook _regEnumKeyExAHook;
-        LocalHook _regEnumKeyExWHook;
 
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern IntPtr CreateFileA(

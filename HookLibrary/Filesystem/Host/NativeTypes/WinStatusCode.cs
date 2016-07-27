@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// Static error codes resulting from native API calls.
-    /// <seealso cref="NtStatusCode"/>
+    /// <seealso cref="NtStatus"/>
     /// </summary>
     public enum WinStatusCode : uint
     {
@@ -655,7 +655,7 @@
         /// <summary>
         /// The specified path is invalid.
         /// </summary>
-        ERROR_BAD_PATHNAME = 161,
+        BadPathname = 161,
 
         /// <summary>
         /// A signal is already pending.
@@ -3574,7 +3574,7 @@
         /// <summary>
         /// The specified port is unknown.
         /// </summary>
-        ERROR_UNKNOWN_PORT = 1796,
+        UnknownPort = 1796,
 
         /// <summary>
         /// The printer driver is unknown.
@@ -8789,7 +8789,7 @@
         ERROR_IPSEC_TUNNEL_FILTER_NOT_FOUND = 13017,
 
         /// <summary>
-        /// The Main Mode filter is pending deletion.
+        /// The HookEntryPoint Mode filter is pending deletion.
         /// </summary>
         ERROR_IPSEC_MM_FILTER_PENDING_DELETION = 13018,
 
@@ -8804,12 +8804,12 @@
         ERROR_IPSEC_TUNNEL_FILTER_PENDING_DELETION = 13020,
 
         /// <summary>
-        /// The Main Mode policy is pending deletion.
+        /// The HookEntryPoint Mode policy is pending deletion.
         /// </summary>
         ERROR_IPSEC_MM_POLICY_PENDING_DELETION = 13021,
 
         /// <summary>
-        /// The Main Mode authentication bundle is pending deletion.
+        /// The HookEntryPoint Mode authentication bundle is pending deletion.
         /// </summary>
         ERROR_IPSEC_MM_AUTH_PENDING_DELETION = 13022,
 
@@ -9069,7 +9069,7 @@
         ERROR_IPSEC_IKE_POLICY_CHANGE = 13849,
 
         /// <summary>
-        /// There is no available Main Mode IKE policy.
+        /// There is no available HookEntryPoint Mode IKE policy.
         /// </summary>
         ERROR_IPSEC_IKE_NO_MM_POLICY = 13850,
 
@@ -9248,5 +9248,4 @@
         /// </summary>
         BufferOverflow = 0x80000005
     }
-}
 }

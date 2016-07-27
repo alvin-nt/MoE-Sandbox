@@ -57,10 +57,9 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
     }
 
     /// <summary>
-    ///     From MSDN:
-    ///     The <see cref="SecurityQos"/> data structure contains information used to support client impersonation.
-    ///     A client can specify this information when it connects to a server; the information determines whether 
-    ///     the server may impersonate the client, and if so, to what extent.
+    /// Contains information used to support client impersonation.
+    /// A client can specify this information when it connects to a server; the information determines whether 
+    /// the server may impersonate the client, and if so, to what extent.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct SecurityQos
@@ -92,16 +91,16 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
     public struct IoStatusBlock
     {
         /// <summary>
-        /// This is the completion status, either <see cref="NtStatusCode.Success"/> if the requested 
+        /// This is the completion status, either <see cref="NtStatus.Success"/> if the requested 
         /// operation was completed successfully or an informational, warning, or error 
-        /// <see cref="NtStatusCode"/> value.
+        /// <see cref="NtStatus"/> value.
         /// </summary>
-        public NtStatusCode Status;
+        public NtStatus Status;
 
         /// <summary>
         /// This is set to a request-dependent value.
         /// For example, on successful completion of a transfer request, this is set to the number of bytes transferred.
-        /// If a transfer request is completed with another <see cref="NtStatusCode"/>, this member is set to zero.
+        /// If a transfer request is completed with another <see cref="NtStatus"/>, this member is set to zero.
         /// </summary>
         public IntPtr Information;
     }

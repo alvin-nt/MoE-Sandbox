@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E4516DC0-CC61-4265-A8C9-0DD514104262}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{26F23D62-463E-4846-93D5-B206898F360A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HookLibrary</RootNamespace>
-    <AssemblyName>HookLibrary</AssemblyName>
+    <RootNamespace>HookLibraryRunner</RootNamespace>
+    <AssemblyName>HookLibraryRunner</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,21 +23,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EasyHook, Version=2.7.6035.0, Culture=neutral, PublicKeyToken=4b580fca19d0b0c5, processorArchitecture=MSIL">
       <HintPath>..\packages\EasyHook.2.7.6035\lib\net40\EasyHook.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.5\lib\net40\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -49,25 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Filesystem\FilesystemRedirector.cs" />
-    <Compile Include="Filesystem\FilesystemHook.cs" />
-    <Compile Include="Filesystem\Host\AccessMask.cs" />
-    <Compile Include="Filesystem\Host\Extensions.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\FileBasicInformation.cs" />
-    <Compile Include="Filesystem\Host\FileInformationClass.cs" />
-    <Compile Include="Filesystem\Host\FileType.cs" />
-    <Compile Include="Filesystem\Host\NativeApi.cs" />
-    <Compile Include="Filesystem\Host\NativeApi.Delegates.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\FileNameInformation.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\NativeTypes.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\NtStatus.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\ObjectAttributes.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\ObjectInformationClass.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\SecurityDescriptor.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\UnicodeString.cs" />
-    <Compile Include="Filesystem\Host\NativeTypes\WinStatusCode.cs" />
-    <Compile Include="Filesystem\Host\Utils.cs" />
-    <Compile Include="HookEntryPoint.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -91,8 +70,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="NLog.config" />
+    <None Include="app.manifest" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HookLibrary\HookLibrary.csproj">
+      <Project>{E4516DC0-CC61-4265-A8C9-0DD514104262}</Project>
+      <Name>HookLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

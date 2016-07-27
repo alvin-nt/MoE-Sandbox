@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
@@ -9,7 +8,7 @@ using Microsoft.Win32;
 
 namespace HookLibrary.Filesystem.Host
 {
-    internal class Utils
+    public class Utils
     {
         /// <summary>
         /// Constant for invalid handle value (-1)
@@ -20,7 +19,7 @@ namespace HookLibrary.Filesystem.Host
         private static readonly IntPtr InvalidHandleValue = new IntPtr(0xFFFFFFFF);
 
         /// <summary>
-        /// Queries information from a NtHandle
+        /// Queries information from a handle
         /// </summary>
         /// <param name="ntHandle"></param>
         /// <param name="informationClass"></param>
@@ -33,82 +32,97 @@ namespace HookLibrary.Filesystem.Host
         /// we cannot trust the return code of this function.
         /// Therefore, its return code will be ignored.
         /// </remarks>
-        [DllImport("ntdll.dll", CallingConvention = CallingConvention.StdCall, ExactSpelling = true, SetLastError = true
-            )]
+        [DllImport("ntdll.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         [ResourceExposure(ResourceScope.Machine)]
-        private static extern NtStatusCode NtQueryObject(IntPtr ntHandle,
+        protected static extern NtStatus NtQueryObject(IntPtr ntHandle,
             ObjectInformationClass informationClass,
             IntPtr infoPtr,
-            uint infoLength,
-            ref uint returnLength);
+            int infoLength,
+            ref int returnLength);
 
         /// <summary>
-        /// UNICODE_STRING struct, used for
+        /// Contains name data of a handle, resulting from <see cref="NtQueryObject"/> call.
         /// </summary>
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 0)]
-        private struct UnsafeUnicodeString
-        {
-            internal ushort Length;
-            internal ushort MaximumLength;
-            internal unsafe char* buffer;
-        }
-
+        /// <remarks>
+        /// Source: http://undocumented.ntinternals.net/index.html?page=UserMode%2FUndocumented%20Functions%2FNT%20Objects%2FType%20independed%2FOBJECT_NAME_INFORMATION.html
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 0)]
         private struct ObjectNameInformation
         {
-            internal UnsafeUnicodeString Name;
-            internal unsafe char* NameBuffer;
+            internal UnicodeString Name;
+            // the original struct's signature actually contains two elements:
+            //     typedef struct _OBJECT_NAME_INFORMATION
+            //     {
+            //        UNICODE_STRING Name;
+            //        WCHAR NameBuffer[0];
+            //     }
+            //     OBJECT_NAME_INFORMATION, *POBJECT_NAME_INFORMATION;
+            // however, since the second element is a zero-sized array, and is not used in our case, we can safely ignore it.
+            // Zero-sized array in the end of a C-struct means that the struct has a variable size.
         }
 
         /// <summary>
-        /// Get the relevant path from a NtHandle.
+        /// Get the relevant path from a pointer to an Nt object.
         /// </summary>
-        /// <param name="ntHandle">the Nt-Handle, which is created by handle-generating Nt-xxx systemcalls</param>
+        /// <param name="handle">the Nt-Handle, which is created by handle-generating Nt-xxx systemcalls</param>
         /// <param name="ntPath">Resulting path</param>
-        /// <returns></returns>
+        /// <returns>
+        /// "\Device\HarddiskVolume3"                                (Harddisk Drive)
+        /// "\Device\HarddiskVolume3\Temp"                           (Harddisk Directory)
+        /// "\Device\HarddiskVolume3\Temp\transparent.jpeg"          (Harddisk File)
+        /// "\Device\Harddisk1\DP(1)0-0+6\foto.jpg"                  (USB stick)
+        /// "\Device\TrueCryptVolumeP\Data\Passwords.txt"            (Truecrypt Volume)
+        /// "\Device\Floppy0\Autoexec.bat"                           (Floppy disk)
+        /// "\Device\CdRom1\VIDEO_TS\VTS_01_0.VOB"                   (DVD drive)
+        /// "\Device\Serial1"                                        (real COM port)
+        /// "\Device\USBSER000"                                      (virtual COM port)
+        /// "\Device\Mup\ComputerName\C$\Boot.ini"                   (network drive share,  Windows 7)
+        /// "\Device\LanmanRedirector\ComputerName\C$\Boot.ini"      (network drive share,  Windows XP)
+        /// "\Device\LanmanRedirector\ComputerName\Shares\Dance.m3u" (network folder share, Windows XP)
+        /// "\Device\Afd"                                            (internet socket)
+        /// "\Device\Console000F"                                    (unique name for any Console handle)
+        /// "\Device\NamedPipe\Pipename"                             (named pipe)
+        /// "\BaseNamedObjects\Objectname"                           (named mutex, named event, named semaphore)
+        /// "\REGISTRY\MACHINE\SOFTWARE\Classes\.txt"                (HKEY_CLASSES_ROOT\.txt)
+        /// </returns>
         /// <remarks>
         /// Currently, this function is written using P/Invoke-style.
+        /// Also, this cannot resolve all network links properly (see http://stackoverflow.com/questions/65170/how-to-get-name-associated-with-open-handle/5286888#comment43347121_18792477)
         /// TODO: refactor it, so that this function throws exception.
         /// </remarks>
-        public static NtStatusCode GetNtPathFromHandle(IntPtr ntHandle, out string ntPath)
+        public static NtStatus GetNtPathFromHandle(IntPtr handle, out string ntPath)
         {
             ntPath = "";
-            if (ntHandle == IntPtr.Zero || ntHandle == InvalidHandleValue)
+            if (handle == IntPtr.Zero || handle == InvalidHandleValue)
             {
-                return NtStatusCode.InvalidHandle;
+                return NtStatus.InvalidHandle;
             }
 
             // checks whether it is a console handle
-            if ((ntHandle.ToInt32() & 0x10000003) == 0x3)
+            if ((handle.ToInt32() & 0x10000003) == 0x3)
             {
-                ntPath = $@"\Device\Console{ntHandle.ToInt32():X4}";
-                return NtStatusCode.Success;
+                ntPath = $@"\Device\Console{handle.ToInt32():X4}";
+                return NtStatus.Success;
             }
 
-            unsafe // this part of code uses pointer manipulation, so this needs to be marked as unsafe.
+            const int bufLen = 2000;
+            var safeBuffer = Marshal.AllocHGlobal(bufLen);
+            var safeLength = 0;
+
+            // just ignore any error from this.
+            NtQueryObject(handle, ObjectInformationClass.ObjectNameInformation, safeBuffer, bufLen, ref safeLength);
+
+            var myStruct = (ObjectNameInformation) Marshal.PtrToStructure(safeBuffer, typeof(ObjectNameInformation));
+            ntPath = myStruct.Name.ToString();
+
+            Marshal.FreeHGlobal(safeBuffer);
+
+            if (ntPath == "")
             {
-                const int bufLen = 2000;
-                var buffer = Marshal.AllocHGlobal(bufLen);
-                uint length = 0;
-
-                var info = &((ObjectNameInformation*) buffer.ToPointer())->Name;
-                info->buffer = null;
-                info->Length = 0;
-
-                NtQueryObject(ntHandle, ObjectInformationClass.ObjectNameInformation, buffer, bufLen, ref length);
-
-                if (info->buffer == null)
-                {
-                    return NtStatusCode.ObjectNameNotFound;
-                }
-
-                // set endchar to null
-                info->buffer[info->Length/UnicodeEncoding.CharSize] = (char) 0;
-                ntPath = Marshal.PtrToStringUni(new IntPtr(info->buffer), info->Length);
-                Marshal.FreeHGlobal(buffer);
+                return (NtStatus) Marshal.GetLastWin32Error();
             }
 
-            return NtStatusCode.Success;
+            return NtStatus.Success;
         }
 
         /// <summary>
@@ -117,8 +131,11 @@ namespace HookLibrary.Filesystem.Host
         /// <param name="deviceName">DOS device name, without trailing backslash (e.g. 'C:', not 'C:\')</param>
         /// <param name="buffer">
         /// A pointer to a buffer that will receive the result of the query. The function fills this buffer with one or more null-terminated strings. The final null-terminated string is followed by an additional NULL.
-        /// If deviceName is non-NULL, the function retrieves information about the particular MS-DOS device specified by deviceName. The first null-terminated string stored into the buffer is the current mapping for the device. The other null-terminated strings represent undeleted prior mappings for the device.
-        /// If deviceName is NULL, the function retrieves a list of all existing MS-DOS device names. Each null-terminated string stored into the buffer is the name of an existing MS-DOS device, for example, \Device\HarddiskVolume1 or \Device\Floppy0.
+        /// If deviceName is non-NULL, the function retrieves information about the particular MS-DOS device specified by deviceName.
+        /// The first null-terminated string stored into the buffer is the current mapping for the device.
+        /// The other null-terminated strings represent undeleted prior mappings for the device.
+        /// If deviceName is NULL, the function retrieves a list of all existing MS-DOS device names.
+        /// Each null-terminated string stored into the buffer is the name of an existing MS-DOS device, for example, \Device\HarddiskVolume1 or \Device\Floppy0.
         /// </param>
         /// <param name="maxUnicodeCharLen">The maximum number of Unicode characters that can be stored into the buffer pointed to by <see cref="lpTargetPath"/>.</param>
         /// <returns>
@@ -126,11 +143,10 @@ namespace HookLibrary.Filesystem.Host
         /// If the function fails, the return value is zero. To get extended error information, call GetLastError.
         /// If the buffer is too small, the function fails and the last error code is <see cref="WinStatusCode.ERROR_INSUFFICIENT_BUFFER"/>.
         /// </returns>
-
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true)]
         protected static extern WinStatusCode QueryDosDevice(
-            [MarshalAs(UnmanagedType.LPStr)] string deviceName, 
-            [MarshalAs(UnmanagedType.LPTStr)] StringBuilder buffer, 
+            [MarshalAs(UnmanagedType.LPStr)] string deviceName,
+            [MarshalAs(UnmanagedType.LPStr)] StringBuilder buffer,
             uint maxUnicodeCharLen);
 
         /// <summary>
@@ -149,7 +165,7 @@ namespace HookLibrary.Filesystem.Host
         /// "\Device\Mup\ComputerName\C$\Boot.ini"                   -> "\\ComputerName\C$\Boot.ini"
         /// "\Device\LanmanRedirector\ComputerName\C$\Boot.ini"      -> "\\ComputerName\C$\Boot.ini"
         /// "\Device\LanmanRedirector\ComputerName\Shares\Dance.m3u" -> "\\ComputerName\Shares\Dance.m3u"
-        /// returns <see cref="WinStatusCode.ERROR_BAD_PATHNAME"/> for any other device type
+        /// returns <see cref="WinStatusCode.BadPathname"/> for any other device type
         /// </returns>
         public static WinStatusCode GetDosPathFromNtPath(string ntPath, out string dosPath)
         {
@@ -158,15 +174,15 @@ namespace HookLibrary.Filesystem.Host
             // check for USB or serial paths
             if (ntPath.StartsWith(@"\Device\Serial", StringComparison.CurrentCultureIgnoreCase) ||
                 ntPath.StartsWith(@"\Device\UsbSer", StringComparison.CurrentCultureIgnoreCase) ||
-                ntPath.StartsWith(@"\Device\ssudmdm", StringComparison.CurrentCultureIgnoreCase) /* SAMSUNG USB devices */)
+                ntPath.StartsWith(@"\Device\ssudmdm", StringComparison.CurrentCultureIgnoreCase)
+                /* SAMSUNG USB devices */)
             {
                 // query the COM port form the registry
-                var regValue = Registry.GetValue(RegistryHive.LocalMachine + @"\Hardware\DeviceMap\SerialComm",
-                    ntPath,
-                    null);
+                const string regKey = @"HKEY_LOCAL_MACHINE\Hardware\DeviceMap\SerialComm";
+                var regValue = Registry.GetValue(regKey, ntPath, null);
                 if (regValue == null)
                 {
-                    return WinStatusCode.ERROR_UNKNOWN_PORT;
+                    return WinStatusCode.UnknownPort;
                 }
 
                 dosPath = (string) regValue;
@@ -175,7 +191,7 @@ namespace HookLibrary.Filesystem.Host
 
             // Valid since Windows XP
             // Used for querying network drives
-            if (ntPath.StartsWith(@"\Device\LanmanRedirector\"))
+            if (ntPath.StartsWith(@"\Device\LanmanRedirector\", StringComparison.CurrentCultureIgnoreCase))
             {
                 // double string for network paths
                 dosPath = $@"\\{ntPath.Substring(25)}";
@@ -184,7 +200,7 @@ namespace HookLibrary.Filesystem.Host
 
             // For Windows 7 - Multiple UNC Provider
             // For more information: https://msdn.microsoft.com/en-us/windows/hardware/drivers/ifs/support-for-unc-naming-and-mup
-            if (ntPath.StartsWith(@"\Device\Mup"))
+            if (ntPath.StartsWith(@"\Device\Mup", StringComparison.CurrentCultureIgnoreCase))
             {
                 // double string for network paths
                 dosPath = $@"\\{ntPath.Substring(12)}";
@@ -192,27 +208,29 @@ namespace HookLibrary.Filesystem.Host
             }
 
             // now for the drives
+            // TODO: cache the devices' names on the first run, for faster performance.
             foreach (var drive in DriveInfo.GetDrives())
             {
                 // just take the first 2 characters (e.g. H:, A:)
-                var dosDriveName = drive.Name.Take(2).ToString();
+                var dosDriveName = drive.Name.Substring(0, 2);
 
                 // arbritary buffer size
                 var volumeBuffer = new StringBuilder(500);
                 var queryDosDeviceRetCode = QueryDosDevice(dosDriveName, volumeBuffer,
-                    (uint) volumeBuffer.Capacity / UnicodeEncoding.CharSize);
+                    (uint) volumeBuffer.Capacity);
 
+                // ReSharper disable once SwitchStatementMissingSomeCases
                 switch (queryDosDeviceRetCode)
                 {
                     case 0: // no data returned; something wrong happened.
-                        return (WinStatusCode)Marshal.GetLastWin32Error();
+                        return (WinStatusCode) Marshal.GetLastWin32Error();
                     case WinStatusCode.BufferTooSmall:
                         throw new Exception("Buffer size to small for QueryDosDevice()!");
                     default:
-                        var volumeLen = volumeBuffer.Length/UnicodeEncoding.CharSize;
-                        if (volumeBuffer.ToString().StartsWith(ntPath, StringComparison.CurrentCultureIgnoreCase))
+                        var volumeString = volumeBuffer.ToString();
+                        if (ntPath.StartsWith(volumeString, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            dosPath = dosDriveName + ntPath.Substring(volumeLen);
+                            dosPath = dosDriveName + ntPath.Substring(volumeBuffer.Length);
                             return WinStatusCode.Success;
                         }
                         break;
@@ -221,7 +239,7 @@ namespace HookLibrary.Filesystem.Host
 
             // other paths: treat as bad path name.
             // TODO: verify the existence of other paths
-            return WinStatusCode.ERROR_BAD_PATHNAME;
+            return WinStatusCode.BadPathname;
         }
     }
 }
