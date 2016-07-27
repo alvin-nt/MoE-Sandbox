@@ -6,24 +6,27 @@
     public enum NtStatus : uint
     {
         // Success
-        Success = 0x00000000,
         Wait0 = 0x00000000,
+        Success = 0x00000000,
         Wait1 = 0x00000001,
         Wait2 = 0x00000002,
         Wait3 = 0x00000003,
         Wait63 = 0x0000003f,
-        Abandoned = 0x00000080,
+
         AbandonedWait0 = 0x00000080,
+        Abandoned = 0x00000080,
         AbandonedWait1 = 0x00000081,
         AbandonedWait2 = 0x00000082,
         AbandonedWait3 = 0x00000083,
         AbandonedWait63 = 0x000000bf,
+
         UserApc = 0x000000c0,
         KernelApc = 0x00000100,
         Alerted = 0x00000101,
         Timeout = 0x00000102,
         Pending = 0x00000103,
         Reparse = 0x00000104,
+
         MoreEntries = 0x00000105,
         NotAllAssigned = 0x00000106,
         SomeNotMapped = 0x00000107,

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.ExceptionServices;
 using NUnit.Framework;
 using HookLibrary.Filesystem.Host;
 using HookLibrary.Filesystem.Host.NativeTypes;

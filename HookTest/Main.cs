@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -14,6 +15,8 @@ namespace HookTest
 
         LocalHook CreateFileAHook;
         LocalHook CreateFileWHook;
+
+        protected readonly List<LocalHook> Hooks;
 
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern IntPtr CreateFileA(
@@ -106,6 +109,8 @@ namespace HookTest
                 Interface = RemoteHooking.IpcConnectClient<RemoteMon>(inChannelName);
                 ChannelName = inChannelName;
                 Initialize(inContext, inChannelName);
+
+                Hooks = new List<LocalHook>(2);
             }
             catch (Exception ex)
             {
@@ -127,17 +132,21 @@ namespace HookTest
         {
             try
             {
-                CreateFileWHook = LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileW"),
-                    new TCreateFileW(hkCreateFileW), this);
-                CreateFileWHook.ThreadACL.SetExclusiveACL(new[] {0});
+                Hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileW"),
+                    new TCreateFileW(hkCreateFileW), this));
+                Hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileA"),
+                    new TCreateFileA(hkCreateFileA), this));
 
-                CreateFileAHook = LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileA"),
-                    new TCreateFileA(hkCreateFileA), this);
-                CreateFileAHook.ThreadACL.SetExclusiveACL(new[] {0});
+                foreach (var hook in Hooks)
+                {
+                    hook.ThreadACL.SetExclusiveACL(null);
+                }
             }
             catch (Exception ex)
             {
-                Interface.ErrorHandler(ex);
+                Interface?.ErrorHandler(ex);
+
+                return;
             }
 
             try
@@ -146,7 +155,9 @@ namespace HookTest
             }
             catch (Exception ex)
             {
-                Interface.ErrorHandler(ex);
+                Interface?.ErrorHandler(ex);
+
+                return;
             }
 
             while (Interface.Ping())
@@ -157,27 +168,17 @@ namespace HookTest
 
         public void Dispose()
         {
-            Interface?.Log("Removing hooks...");
-
-            try
+            foreach (var hook in Hooks)
             {
-                CreateFileAHook.Dispose();
+                try
+                {
+                    hook.Dispose();
+                }
+                catch
+                {
+                    // ignore
+                }
             }
-            catch (Exception)
-            {
-                // just ignore
-            }
-
-            try
-            {
-                CreateFileWHook.Dispose();
-            }
-            catch (Exception)
-            {
-                // just ignore
-            }
-
-            Interface?.Log("Hooks removed!");
         }
     }
 }

@@ -8,6 +8,7 @@ namespace HookLibrary.Filesystem
         /// <summary>
         /// Logger interface that is going to be used by the invoking hook functions.
         /// </summary>
+        // TODO: fix this, not working :(
         public readonly ILogger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -19,6 +20,7 @@ namespace HookLibrary.Filesystem
         {
             // TODO: do the actual redirection stuff
             _basePath = "";
+            //Logger.Debug("Logger initialized!");
         }
 
         public bool Ping()

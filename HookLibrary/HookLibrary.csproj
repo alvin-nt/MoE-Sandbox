@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Filesystem\FilesystemRedirector.cs" />
-    <Compile Include="Filesystem\FilesystemHook.cs" />
+    <Compile Include="Filesystem\FilesystemHookHandler.cs" />
     <Compile Include="Filesystem\Host\AccessMask.cs" />
     <Compile Include="Filesystem\Host\Extensions.cs" />
     <Compile Include="Filesystem\Host\NativeTypes\FileBasicInformation.cs" />

@@ -202,18 +202,30 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
 
         public string GetNtPath()
         {
-            var rootPath = "";
+            var rootPath = GetRootPath();
 
-            if (RootDirectoryHandle != IntPtr.Zero)
+            if (rootPath.Equals(""))
             {
-                Utils.GetNtPathFromHandle(RootDirectoryHandle, out rootPath);
+                // TODO: convert properly
+                return ObjectName;
             }
 
-            return rootPath + ObjectName;
+            if (ObjectName.IsNtPath())
+            {
+                return rootPath + ObjectName;
+            }
+
+            return rootPath + '\\' + ObjectName;
         }
 
         public string GetDosPath()
         {
+            var rootPath = GetRootPath();
+            if (rootPath.Equals("") && ObjectName.IsDosPath())
+            {
+                return ObjectName.WithoutPrefix();
+            }
+
             var path = GetNtPath();
             Utils.GetDosPathFromNtPath(path, out path);
 

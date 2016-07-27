@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -8,7 +9,7 @@ using Microsoft.Win32;
 
 namespace HookLibrary.Filesystem.Host
 {
-    public class Utils
+    public static class Utils
     {
         /// <summary>
         /// Constant for invalid handle value (-1)
@@ -17,6 +18,15 @@ namespace HookLibrary.Filesystem.Host
         /// Source: http://permalink.gmane.org/gmane.comp.java.jna.user/4538
         /// </remarks>
         private static readonly IntPtr InvalidHandleValue = new IntPtr(0xFFFFFFFF);
+
+        /// <summary>
+        /// Stores mapping
+        /// </summary>
+        /// <remarks>
+        /// Item1 contains the Dos drive name
+        /// Item2 contains the corresponding Nt path.
+        /// </remarks>
+        private static readonly List<Tuple<string, string>> NtDosDrives;
 
         /// <summary>
         /// Queries information from a handle
@@ -34,11 +44,73 @@ namespace HookLibrary.Filesystem.Host
         /// </remarks>
         [DllImport("ntdll.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         [ResourceExposure(ResourceScope.Machine)]
-        protected static extern NtStatus NtQueryObject(IntPtr ntHandle,
+        private static extern NtStatus NtQueryObject(IntPtr ntHandle,
             ObjectInformationClass informationClass,
             IntPtr infoPtr,
             int infoLength,
             ref int returnLength);
+
+        /// <summary>
+        /// Retrieves information about DOS device names.
+        /// </summary>
+        /// <param name="deviceName">DOS device name, without trailing backslash (e.g. 'C:', not 'C:\')</param>
+        /// <param name="buffer">
+        /// A pointer to a buffer that will receive the result of the query. The function fills this buffer with one or more null-terminated strings. The final null-terminated string is followed by an additional NULL.
+        /// If deviceName is non-NULL, the function retrieves information about the particular MS-DOS device specified by deviceName.
+        /// The first null-terminated string stored into the buffer is the current mapping for the device.
+        /// The other null-terminated strings represent undeleted prior mappings for the device.
+        /// If deviceName is NULL, the function retrieves a list of all existing MS-DOS device names.
+        /// Each null-terminated string stored into the buffer is the name of an existing MS-DOS device, for example, \Device\HarddiskVolume1 or \Device\Floppy0.
+        /// </param>
+        /// <param name="maxUnicodeCharLen">The maximum number of Unicode characters that can be stored into the buffer pointed to by <see cref="lpTargetPath"/>.</param>
+        /// <returns>
+        /// If the function succeeds, the return value is the number of TCHARs stored into the buffer pointed to by buffer.
+        /// If the function fails, the return value is zero. To get extended error information, call GetLastError.
+        /// If the buffer is too small, the function fails and the last error code is <see cref="WinStatusCode.ERROR_INSUFFICIENT_BUFFER"/>.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern WinStatusCode QueryDosDevice(
+            [MarshalAs(UnmanagedType.LPStr)] string deviceName,
+            [MarshalAs(UnmanagedType.LPStr)] StringBuilder buffer,
+            uint maxUnicodeCharLen);
+
+        /// <summary>
+        /// Constructor. Initializes the mapping from Nt-to-Dos path.
+        /// </summary>
+        static Utils()
+        {
+            // TODO: temporarily disable hooking when this function is executed.
+
+            var drives = DriveInfo.GetDrives();
+
+            NtDosDrives = new List<Tuple<string, string>>(drives.Length);
+
+            // load the DOS to Nt path mapping
+            foreach (var drive in drives)
+            {
+                // just take the first 2 characters (e.g. H:, A:)
+                var dosDriveName = drive.Name.Substring(0, 2);
+
+                // arbritary buffer size
+                var volumeBuffer = new StringBuilder(500);
+                var queryDosDeviceRetCode = QueryDosDevice(dosDriveName, volumeBuffer,
+                    (uint)volumeBuffer.Capacity);
+
+                // ReSharper disable once SwitchStatementMissingSomeCases
+                switch (queryDosDeviceRetCode)
+                {
+                    case 0: // no data returned; something wrong happened.
+                        break; // just ignore?
+                    case WinStatusCode.BufferTooSmall:
+                        throw new Exception("Buffer size to small for QueryDosDevice()!");
+                    default:
+                        var ntVolumeString = volumeBuffer.ToString();
+                        NtDosDrives.Add(new Tuple<string, string>(dosDriveName, ntVolumeString));
+                        break;
+                }
+            }
+
+        }
 
         /// <summary>
         /// Contains name data of a handle, resulting from <see cref="NtQueryObject"/> call.
@@ -126,30 +198,6 @@ namespace HookLibrary.Filesystem.Host
         }
 
         /// <summary>
-        /// Retrieves information about DOS device names.
-        /// </summary>
-        /// <param name="deviceName">DOS device name, without trailing backslash (e.g. 'C:', not 'C:\')</param>
-        /// <param name="buffer">
-        /// A pointer to a buffer that will receive the result of the query. The function fills this buffer with one or more null-terminated strings. The final null-terminated string is followed by an additional NULL.
-        /// If deviceName is non-NULL, the function retrieves information about the particular MS-DOS device specified by deviceName.
-        /// The first null-terminated string stored into the buffer is the current mapping for the device.
-        /// The other null-terminated strings represent undeleted prior mappings for the device.
-        /// If deviceName is NULL, the function retrieves a list of all existing MS-DOS device names.
-        /// Each null-terminated string stored into the buffer is the name of an existing MS-DOS device, for example, \Device\HarddiskVolume1 or \Device\Floppy0.
-        /// </param>
-        /// <param name="maxUnicodeCharLen">The maximum number of Unicode characters that can be stored into the buffer pointed to by <see cref="lpTargetPath"/>.</param>
-        /// <returns>
-        /// If the function succeeds, the return value is the number of TCHARs stored into the buffer pointed to by buffer.
-        /// If the function fails, the return value is zero. To get extended error information, call GetLastError.
-        /// If the buffer is too small, the function fails and the last error code is <see cref="WinStatusCode.ERROR_INSUFFICIENT_BUFFER"/>.
-        /// </returns>
-        [DllImport("kernel32.dll", SetLastError = true)]
-        protected static extern WinStatusCode QueryDosDevice(
-            [MarshalAs(UnmanagedType.LPStr)] string deviceName,
-            [MarshalAs(UnmanagedType.LPStr)] StringBuilder buffer,
-            uint maxUnicodeCharLen);
-
-        /// <summary>
         /// Transforms NtPath to a corresponding DOS path.
         /// </summary>
         /// <returns>
@@ -209,32 +257,15 @@ namespace HookLibrary.Filesystem.Host
 
             // now for the drives
             // TODO: cache the devices' names on the first run, for faster performance.
-            foreach (var drive in DriveInfo.GetDrives())
+            foreach (var pathTuple in NtDosDrives)
             {
-                // just take the first 2 characters (e.g. H:, A:)
-                var dosDriveName = drive.Name.Substring(0, 2);
+                var dosDrive = pathTuple.Item1;
+                var ntPathForDosDrive = pathTuple.Item2;
 
-                // arbritary buffer size
-                var volumeBuffer = new StringBuilder(500);
-                var queryDosDeviceRetCode = QueryDosDevice(dosDriveName, volumeBuffer,
-                    (uint) volumeBuffer.Capacity);
+                if (!ntPath.StartsWith(ntPathForDosDrive, StringComparison.CurrentCultureIgnoreCase)) continue;
 
-                // ReSharper disable once SwitchStatementMissingSomeCases
-                switch (queryDosDeviceRetCode)
-                {
-                    case 0: // no data returned; something wrong happened.
-                        return (WinStatusCode) Marshal.GetLastWin32Error();
-                    case WinStatusCode.BufferTooSmall:
-                        throw new Exception("Buffer size to small for QueryDosDevice()!");
-                    default:
-                        var volumeString = volumeBuffer.ToString();
-                        if (ntPath.StartsWith(volumeString, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            dosPath = dosDriveName + ntPath.Substring(volumeBuffer.Length);
-                            return WinStatusCode.Success;
-                        }
-                        break;
-                }
+                dosPath = dosDrive + ntPath.Substring(ntPathForDosDrive.Length);
+                return WinStatusCode.Success;
             }
 
             // other paths: treat as bad path name.

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using HookLibrary.Filesystem.Host.NativeTypes;
 
 namespace HookLibrary.Filesystem.Host
@@ -28,12 +27,11 @@ namespace HookLibrary.Filesystem.Host
         /// <param name="eaLength"></param>
         /// <returns></returns>
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatus NtCreateFile(
             out IntPtr handle,
             AccessMask access,
             ref ObjectAttributes objectAttributes,
-            out IoStatusBlock ioStatusBlock,
+            ref IoStatusBlock ioStatusBlock,
             ref long allocationSize,
             uint fileAttributes,
             FileShare share,
@@ -44,53 +42,47 @@ namespace HookLibrary.Filesystem.Host
             );
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatus NtOpenFile(
             out IntPtr handle,
             AccessMask access,
             ref ObjectAttributes objectAttributes,
-            out IoStatusBlock ioStatusBlock,
+            ref IoStatusBlock ioStatusBlock,
             FileShare share,
-            NtFileOptions openOptions);
+            NtFileOptions openOptions
+            );
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatus NtDeleteFile(
             ref ObjectAttributes objectAttributes // in
             );
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatus NtQueryAttributesFile(
             ref ObjectAttributes objectAttributes, // in
             ref FileBasicInformation fileBasicInfo // out
             );
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatus NtQueryFullAttributesFile(
             ref ObjectAttributes objectAttributes, // in
             out IntPtr attributes // out
             );
 
         [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
         public static extern NtStatus NtOpenDirectoryObject(
             out IntPtr handle, // out
             AccessMask access, // in
             ref ObjectAttributes objectAttributes // in
             );
 
-        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
+        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]        
         public static extern NtStatus NtOpenSymbolicLinkObject(
             out IntPtr handle, // out
             AccessMask access, // in
             ref ObjectAttributes objectAttributes // in
             );
 
-        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]
-        [ResourceExposure(ResourceScope.Machine)]
+        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = true)]        
         public static extern NtStatus NtQueryInformationFile(
             IntPtr handle,
             out IoStatusBlock ioStatusBlock,

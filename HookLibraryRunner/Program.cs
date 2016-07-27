@@ -28,8 +28,6 @@ namespace HookLibraryRunner
                 _channel = RemoteHooking.IpcCreateServer<FilesystemRedirector>(
                     ref ChannelName, WellKnownObjectMode.Singleton);
 
-                Console.WriteLine($"Created .NET Remoting server on channel {ChannelName}");
-
                 Console.Write("Please type your process name here: ");
                 var processName = Console.ReadLine();
 
@@ -45,11 +43,9 @@ namespace HookLibraryRunner
                     Console.ReadLine();
                     return;
                 }
+
                 RemoteHooking.Inject(processId, InjectionOptions.DoNotRequireStrongName, CurrentDir + "HookLibrary.dll",
                     CurrentDir + "HookLibrary.dll", ChannelName);
-
-                _channel.StartListening(null);
-                Console.WriteLine("Injected!");
             }
             catch (Exception ex)
             {

@@ -10,14 +10,14 @@ namespace HookLibrary.Filesystem.Host
         /// <summary>
         /// Represents all delegates for the native system calls that is going to be hooked.        
         /// </summary>
-        public class Delegates
+        public static class Delegates
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Auto, SetLastError = true)]
             public delegate NtStatus NtCreateFile(
                 out IntPtr handle,
                 AccessMask access,
                 ref ObjectAttributes objectAttributes,
-                out IoStatusBlock ioStatusBlock,
+                ref IoStatusBlock ioStatusBlock,
                 ref long allocationSize,
                 uint fileAttributes,
                 FileShare share,
@@ -31,7 +31,7 @@ namespace HookLibrary.Filesystem.Host
                 out IntPtr handle,
                 AccessMask access,
                 ref ObjectAttributes objectAttributes,
-                out IoStatusBlock ioStatusBlock,
+                ref IoStatusBlock ioStatusBlock,
                 FileShare share,
                 NtFileOptions openOptions);
 

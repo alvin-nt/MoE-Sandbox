@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using HookLibrary.Filesystem.Host.NativeTypes;
 
 namespace HookLibrary.Filesystem.Host.NativeTypes
 {
@@ -46,6 +45,12 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         OverwriteIf = 5
     }
 
+    /// <summary>
+    /// Represents the file creation options imposed on the system call.
+    /// </summary>
+    /// <remarks>
+    /// TODO: some values are not captured.
+    /// </remarks>
     [Flags]
     public enum NtFileOptions : uint
     {
