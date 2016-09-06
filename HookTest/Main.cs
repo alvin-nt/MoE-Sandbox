@@ -1,120 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 using System.Threading;
 using EasyHook;
+using System.Windows.Forms;
 
 namespace HookTest
 {
     public class Main : IEntryPoint, IDisposable
     {
-        string ChannelName;
-        readonly RemoteMon Interface;
+        public readonly RemoteMon Interface;
 
-        LocalHook CreateFileAHook;
-        LocalHook CreateFileWHook;
-
-        protected readonly List<LocalHook> Hooks;
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-        public static extern IntPtr CreateFileA(
-            [MarshalAs(UnmanagedType.LPStr)] string filename,
-            [MarshalAs(UnmanagedType.U4)] FileAccess access,
-            [MarshalAs(UnmanagedType.U4)] FileShare share,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-            IntPtr templateFile);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern IntPtr CreateFileW(
-            [MarshalAs(UnmanagedType.LPWStr)] string filename,
-            [MarshalAs(UnmanagedType.U4)] FileAccess access,
-            [MarshalAs(UnmanagedType.U4)] FileShare share,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-            IntPtr templateFile);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi, SetLastError = true)]
-        public delegate IntPtr TCreateFileA(
-            [MarshalAs(UnmanagedType.LPStr)] string filename,
-            [MarshalAs(UnmanagedType.U4)] FileAccess access,
-            [MarshalAs(UnmanagedType.U4)] FileShare share,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-            IntPtr templateFile);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
-        public delegate IntPtr TCreateFileW(
-            [MarshalAs(UnmanagedType.LPWStr)] string filename,
-            [MarshalAs(UnmanagedType.U4)] FileAccess access,
-            [MarshalAs(UnmanagedType.U4)] FileShare share,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-            IntPtr templateFile);
-
-        static IntPtr hkCreateFileA(
-            [MarshalAs(UnmanagedType.LPStr)] string filename,
-            [MarshalAs(UnmanagedType.U4)] FileAccess access,
-            [MarshalAs(UnmanagedType.U4)] FileShare share,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-            IntPtr templateFile)
-        {
-            try
-            {
-                ((Main) HookRuntimeInfo.Callback).Interface.GotFileNameA(filename);
-                return CreateFileA(filename, access, share, securityAttributes, creationDisposition, flagsAndAttributes,
-                    templateFile);
-            }
-            catch (Exception ex)
-            {
-                ((Main) HookRuntimeInfo.Callback).Interface.ErrorHandler(ex);
-                return IntPtr.Zero;
-            }
-        }
-
-        static IntPtr hkCreateFileW(
-            [MarshalAs(UnmanagedType.LPWStr)] string filename,
-            [MarshalAs(UnmanagedType.U4)] FileAccess access,
-            [MarshalAs(UnmanagedType.U4)] FileShare share,
-            IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-            IntPtr templateFile)
-        {
-            try
-            {
-                ((Main) HookRuntimeInfo.Callback).Interface.GotFileNameW(filename);
-                return CreateFileW(filename, access, share, securityAttributes, creationDisposition, flagsAndAttributes,
-                    templateFile);
-            }
-            catch (Exception ex)
-            {
-                ((Main) HookRuntimeInfo.Callback).Interface.ErrorHandler(ex);
-                return IntPtr.Zero;
-            }
-        }
+        private readonly List<LocalHook> _hooks;
 
         public Main(RemoteHooking.IContext inContext, string inChannelName)
         {
             try
             {
                 Interface = RemoteHooking.IpcConnectClient<RemoteMon>(inChannelName);
-                ChannelName = inChannelName;
                 Initialize(inContext, inChannelName);
 
-                Hooks = new List<LocalHook>(2);
+                _hooks = new List<LocalHook>(10);
             }
             catch (Exception ex)
             {
-                Interface.ErrorHandler(ex);
+                Interface?.LogError(ex);
             }
         }
 
@@ -132,22 +42,64 @@ namespace HookTest
         {
             try
             {
-                Hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileW"),
-                    new TCreateFileW(hkCreateFileW), this));
-                Hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileA"),
-                    new TCreateFileA(hkCreateFileA), this));
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileA"),
+                    new NativeApi.Delegates.CreateFileA(FilesystemHookHandler.CreateFileA),
+                    this));
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateFileW"),
+                    new NativeApi.Delegates.CreateFileW(FilesystemHookHandler.CreateFileW),
+                    this));
 
-                foreach (var hook in Hooks)
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateDirectoryA"),
+                    new NativeApi.Delegates.CreateDirectoryA(FilesystemHookHandler.CreateDirectoryA),
+                    this));
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "CreateDirectoryW"),
+                    new NativeApi.Delegates.CreateDirectoryW(FilesystemHookHandler.CreateDirectoryW),
+                    this));
+
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "DeleteFileA"),
+                    new NativeApi.Delegates.DeleteFileA(FilesystemHookHandler.DeleteFileA),
+                    this));
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "DeleteFileW"),
+                    new NativeApi.Delegates.DeleteFileW(FilesystemHookHandler.DeleteFileW),
+                    this));
+
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "LoadLibraryExA"),
+                    new NativeApi.Delegates.LoadLibraryExA(FilesystemHookHandler.LoadLibraryExA),
+                    this));
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "LoadLibraryExW"),
+                    new NativeApi.Delegates.LoadLibraryExW(FilesystemHookHandler.LoadLibraryExW),
+                    this));
+
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "RemoveDirectoryA"),
+                    new NativeApi.Delegates.RemoveDirectoryA(FilesystemHookHandler.RemoveDirectoryA),
+                    this));
+                _hooks.Add(LocalHook.Create(LocalHook.GetProcAddress("Kernel32.dll", "RemoveDirectoryW"),
+                    new NativeApi.Delegates.RemoveDirectoryW(FilesystemHookHandler.RemoveDirectoryW),
+                    this));
+
+                foreach (var hook in _hooks)
                 {
+                    // set up the hooks to hook all thread
                     hook.ThreadACL.SetExclusiveACL(null);
                 }
             }
             catch (Exception ex)
             {
-                Interface?.ErrorHandler(ex);
+                Interface?.LogError(ex);
 
-                return;
+                return; // cannot continue with the hook; just dispose.
             }
+
+#if DEBUG
+            var messageBoxResult =
+                MessageBox.Show($"Do you want to attach a debugger to process {RemoteHooking.GetCurrentProcessId()}?",
+                    "Attach Debugger",
+                    MessageBoxButtons.YesNo);
+            if (messageBoxResult == DialogResult.Yes)
+            {
+                Debugger.Launch();
+            }
+#endif
 
             try
             {
@@ -155,20 +107,28 @@ namespace HookTest
             }
             catch (Exception ex)
             {
-                Interface?.ErrorHandler(ex);
+                Interface?.LogError(ex);
 
                 return;
             }
 
-            while (Interface.Ping())
+            try
             {
-                Thread.Sleep(1000);
+                while (Interface.Ping())
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+            catch
+            {
+                // if disconnected, interface will throw an exception.
+                // silently return, so that the hooks can be disposed.
             }
         }
 
         public void Dispose()
         {
-            foreach (var hook in Hooks)
+            foreach (var hook in _hooks)
             {
                 try
                 {

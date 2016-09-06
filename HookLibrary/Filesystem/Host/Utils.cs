@@ -14,10 +14,7 @@ namespace HookLibrary.Filesystem.Host
         /// <summary>
         /// Constant for invalid handle value (-1)
         /// </summary>
-        /// <remarks>
-        /// Source: http://permalink.gmane.org/gmane.comp.java.jna.user/4538
-        /// </remarks>
-        private static readonly IntPtr InvalidHandleValue = new IntPtr(0xFFFFFFFF);
+        private static readonly IntPtr InvalidHandleValue = new IntPtr(-1);
 
         /// <summary>
         /// Stores mapping

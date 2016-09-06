@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
+using System.Windows.Forms;
 using EasyHook;
 using HookLibrary.Filesystem;
 using HookLibrary.Filesystem.Host;
@@ -99,6 +101,17 @@ namespace HookLibrary
                 return;
             }
 
+#if DEBUG
+            var messageBoxResult =
+                MessageBox.Show($"Do you want to attach a debugger to process {RemoteHooking.GetCurrentProcessId()}?",
+                    "Attach Debugger",
+                    MessageBoxButtons.YesNo);
+            if (messageBoxResult == DialogResult.Yes)
+            {
+                Debugger.Launch();
+            }
+#endif
+
             // let's start the process!
             try
             {
@@ -128,7 +141,6 @@ namespace HookLibrary
                         flush = Logs.Count > 0;
                         if (flush)
                         {
-                            RedirectorInterface.WriteToConsole("Flushing logs...");
                             logItems = Logs.ToArray();
                             Logs.Clear();
                         }
@@ -145,6 +157,7 @@ namespace HookLibrary
             catch
             {
                 // Ping() will throw exception when disconnected.
+                // just silently return, so that we can continue the invocation.
             }
         }
 

@@ -65,9 +65,13 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FilesystemHookHandler.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="NativeApi.cs" />
+    <Compile Include="NativeApi.Delegates.cs" />
     <Compile Include="RemoteMon.cs" />
   </ItemGroup>
   <ItemGroup>

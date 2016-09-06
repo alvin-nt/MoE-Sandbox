@@ -18,7 +18,14 @@ namespace HookLibrary.Filesystem.Host
             long highBits = filetime.dwHighDateTime;
             highBits = highBits << 32;
 
-            return DateTime.FromFileTimeUtc(highBits | (uint)filetime.dwLowDateTime);
+            try
+            {
+                return DateTime.FromFileTimeUtc(highBits | (uint)filetime.dwLowDateTime);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return new DateTime(0);
+            }
         }
 
         /// <summary>
