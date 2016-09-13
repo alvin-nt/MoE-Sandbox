@@ -18,7 +18,7 @@ namespace HookLibrary.Filesystem.Host
                 AccessMask access,
                 ref ObjectAttributes objectAttributes,
                 ref IoStatusBlock ioStatusBlock,
-                ref long allocationSize,
+                long allocationSize,
                 uint fileAttributes,
                 FileShare share,
                 NtFileCreateDisposition createDisposition,

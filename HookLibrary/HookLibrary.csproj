@@ -68,6 +68,7 @@
     <Compile Include="Filesystem\Host\NativeTypes\UnicodeString.cs" />
     <Compile Include="Filesystem\Host\NativeTypes\WinStatusCode.cs" />
     <Compile Include="Filesystem\Host\Utils.cs" />
+    <Compile Include="Filesystem\VirtualFolder.cs" />
     <Compile Include="HookEntryPoint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

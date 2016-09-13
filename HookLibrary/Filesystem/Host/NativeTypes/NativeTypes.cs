@@ -54,11 +54,25 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
     [Flags]
     public enum NtFileOptions : uint
     {
+        DirectoryFile = 0x00000001,
         WriteThrough = 0x00000002,
         SequentialOnly = 0x00000004,
         NoImmediateBuffering = 0x00000008,
+
+        SynchronousIoAlert = 0x00000010,
         SynchronousIoNonAlert = 0x00000020,
-        RandomAccess = 0x00000800
+        NonDirectoryFile = 0x00000040,
+        CreateTreeConnection = 0x00000080,
+
+        CompleteIfOpLocked = 0x00000100,
+        NoEaKnowledge = 0x00000200,
+
+        RandomAccess = 0x00000800, 
+
+        DeleteOnClose = 0x00001000,
+        OpenByFileId = 0x00002000,
+        OpenForBackupIntent = 0x00004000,
+        NoCompression = 0x00008000
     }
 
     /// <summary>

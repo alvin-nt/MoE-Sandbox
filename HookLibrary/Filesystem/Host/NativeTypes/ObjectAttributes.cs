@@ -124,7 +124,12 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         /// </summary>
         public UnicodeString ObjectName
         {
-            get { return (UnicodeString) Marshal.PtrToStructure(_objectName, typeof(UnicodeString)); }
+            get
+            {
+                if (_objectName == IntPtr.Zero)
+                    return UnicodeString.Empty;
+                return (UnicodeString) Marshal.PtrToStructure(_objectName, typeof(UnicodeString));
+            }
             set
             {
                 if (_objectName == IntPtr.Zero)
@@ -147,7 +152,14 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         /// </summary>
         public SecurityQos SecurityQos
         {
-            get { return (SecurityQos) Marshal.PtrToStructure(_securityQos, typeof(SecurityQos)); }
+            get
+            {
+                if (_securityQos == IntPtr.Zero)
+                {
+                    return default(SecurityQos);
+                }
+                return (SecurityQos) Marshal.PtrToStructure(_securityQos, typeof(SecurityQos));
+            }
             set
             {
                 if (_securityQos == IntPtr.Zero)
@@ -170,7 +182,15 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         /// </summary>
         public SecurityDescriptor SecurityDescriptor
         {
-            get { return (SecurityDescriptor) Marshal.PtrToStructure(_securityQos, typeof(SecurityDescriptor)); }
+            get
+            {
+                if (_ptrSecurityDescriptor == IntPtr.Zero)
+                {
+                    return default(SecurityDescriptor);
+                }
+
+                return (SecurityDescriptor) Marshal.PtrToStructure(_ptrSecurityDescriptor, typeof(SecurityDescriptor));
+            }
             set
             {
                 if (_ptrSecurityDescriptor == IntPtr.Zero)
@@ -188,6 +208,10 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
             }
         }
 
+        /// <summary>
+        /// Get the root path from a handle
+        /// </summary>
+        /// <returns></returns>
         public string GetRootPath()
         {
             var path = "";

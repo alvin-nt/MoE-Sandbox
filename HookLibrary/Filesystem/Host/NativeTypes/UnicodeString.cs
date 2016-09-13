@@ -14,6 +14,8 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 0)]
     public struct UnicodeString : IDisposable
     {
+        public static readonly UnicodeString Empty = new UnicodeString("");
+
         /// <summary>
         /// Length of the string.
         /// </summary>
@@ -37,6 +39,10 @@ namespace HookLibrary.Filesystem.Host.NativeTypes
         {
             Length = (ushort) (str.Length * UnicodeEncoding.CharSize);
             MaximumLength = (ushort) (Length + UnicodeEncoding.CharSize); // add 1 char for NULL
+            if (string.IsNullOrEmpty(str))
+            {
+                _buffer = IntPtr.Zero;
+            }
             _buffer = Marshal.StringToHGlobalUni(str);
         }
 

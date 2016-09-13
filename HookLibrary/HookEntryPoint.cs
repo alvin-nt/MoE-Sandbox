@@ -28,7 +28,7 @@ namespace HookLibrary
 
         protected string ChannelName;
 
-        protected readonly FilesystemRedirector RedirectorInterface;
+        internal readonly FilesystemRedirector RedirectorInterface;
 
         public readonly Queue<Tuple<LogLevel, string>> Logs;
 

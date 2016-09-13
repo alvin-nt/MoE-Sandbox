@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using EasyHook;
 using HookLibrary.Filesystem.Host;
 using HookLibrary.Filesystem.Host.NativeTypes;
@@ -29,7 +31,7 @@ namespace HookLibrary.Filesystem
             AccessMask access,
             ref ObjectAttributes objectAttributes,
             ref IoStatusBlock ioStatusBlock,
-            ref long allocationSize,
+            long allocationSize,
             uint fileAttributes,
             FileShare share,
             NtFileCreateDisposition createDisposition,
@@ -48,9 +50,39 @@ namespace HookLibrary.Filesystem
                 helper = null;
             }
 
-            // TODO: redirection.
-            var status = NativeApi.NtCreateFile(out handle, access, ref objectAttributes, ref ioStatusBlock,
-                ref allocationSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+            NtStatus status;
+            try
+            {
+                if (helper != null)
+                {
+                    var originalPath = objectAttributes.GetNtPath();
+                    var redirectedPath = helper.RedirectorInterface.RedirectPath(originalPath, null);
+                    var redirectedObjectAttributes = new ObjectAttributes
+                    {
+                        Attributes = objectAttributes.Attributes,
+                        ObjectName = new UnicodeString(redirectedPath),
+                        SecurityDescriptor = objectAttributes.SecurityDescriptor,
+                        SecurityQos = objectAttributes.SecurityQos,
+                    };
+
+                    redirectedObjectAttributes.Length = objectAttributes.Length - objectAttributes.ObjectName.Length +
+                                                        redirectedObjectAttributes.ObjectName.Length;
+
+                    status = NativeApi.NtCreateFile(out handle, access, ref redirectedObjectAttributes, ref ioStatusBlock,
+                        allocationSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+                }
+                else
+                {
+                    status = NativeApi.NtCreateFile(out handle, access, ref objectAttributes, ref ioStatusBlock,
+                        allocationSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+                }
+            }
+            catch (Exception)
+            {
+                Debugger.Break();
+                throw;
+            }
+
             helper?.AddToLogQueue(LogLevel.Debug,
                 "[NtCreateFile] " +
                 $"ObjectName: {objectAttributes.ObjectName.WithoutPrefix()}, " +
@@ -84,6 +116,7 @@ namespace HookLibrary.Filesystem
             }
 
             // TODO: redirection.
+            
             var status = NativeApi.NtOpenFile(out handle, access, ref objectAttributes, ref ioStatusBlock,
                 share, openOptions);
 
