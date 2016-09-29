@@ -51,16 +51,35 @@ namespace HookLibrary.Filesystem
             // TODO: redirection.
             var status = NativeApi.NtCreateFile(out handle, access, ref objectAttributes, ref ioStatusBlock,
                 ref allocationSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-            helper?.AddToLogQueue(LogLevel.Debug,
-                "[NtCreateFile] " +
-                $"ObjectName: {objectAttributes.ObjectName.WithoutPrefix()}, " +
-                $"FullNtPath: {objectAttributes.GetNtPath()}, " +
-                $"FullDosPath: {objectAttributes.GetDosPath()}, " +
-                $"AccessMask:{{{access}}}, " +
-                $"Disposition: {createDisposition}, " +
-                $"CreateOptions: {createOptions}, " +
-                $"Status: {status}"
-                );
+
+            var objectName = objectAttributes.ObjectName;
+            if (objectName.HasPrefix())
+            {
+                if (objectName.WithoutPrefix().StartsWith("D", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    helper?.AddToLogQueue(LogLevel.Debug,
+                        "[NtCreateFile] " +
+                        $"ObjectName: {objectAttributes.ObjectName.WithoutPrefix()}, " +
+                        $"FullNtPath: {objectAttributes.GetNtPath()}, " +
+                        $"FullDosPath: {objectAttributes.GetDosPath()}, " +
+                        $"AccessMask:{{{access}}}, " +
+                        $"Disposition: {createDisposition}, " +
+                        $"CreateOptions: {createOptions}, " +
+                        $"Status: {status}"
+                        );
+                }
+            }
+            else
+            {
+                helper?.AddToLogQueue(LogLevel.Debug,
+                    "[NtCreateFile] " +
+                    $"ObjectName: {objectAttributes.ObjectName}, " +
+                    $"AccessMask:{{{access}}}, " +
+                    $"Disposition: {createDisposition}, " +
+                    $"CreateOptions: {createOptions}, " +
+                    $"Status: {status}"
+                    );
+            }
 
             return status;
         }
@@ -145,14 +164,28 @@ namespace HookLibrary.Filesystem
             }
 
             var status = NativeApi.NtQueryAttributesFile(ref objectAttributes, ref fileBasicInfo);
-
-            helper?.AddToLogQueue(LogLevel.Debug,
-                "[NtQueryAttributesFile] " +
-                $"ObjectName: {objectAttributes.ObjectName.WithoutPrefix()}, " +
-                $"FullNtPath: {objectAttributes.GetNtPath()}, " +
-                $"FullDosPath: {objectAttributes.GetDosPath()}, " +
-                $"Status: {status}, " +
-                $"FileBasicInfo:{{{(status == NtStatus.ObjectNameNotFound ? null : fileBasicInfo.ToString())}}}.");
+            var objectName = objectAttributes.ObjectName;
+            if (objectName.HasPrefix())
+            {
+                if (objectName.WithoutPrefix().StartsWith("D", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    helper?.AddToLogQueue(LogLevel.Debug,
+                        "[NtQueryAttributesFile] " +
+                        $"ObjectName: {objectName.WithoutPrefix()}, " +
+                        $"NtPath: {objectAttributes.GetNtPath()}, " +
+                        $"DosPath: {objectAttributes.GetDosPath()}, " +
+                        $"Status: {status}, " +
+                        $"FileBasicInfo:{{{(status == NtStatus.ObjectNameNotFound ? null : fileBasicInfo.ToString())}}}.");
+                }
+            }
+            else
+            {
+                helper?.AddToLogQueue(LogLevel.Debug,
+                    "[NtQueryAttributesFile] " +
+                    $"ObjectName: {objectAttributes.ObjectName}, " +
+                    $"Status: {status}, " +
+                    $"FileBasicInfo:{{{(status == NtStatus.ObjectNameNotFound ? null : fileBasicInfo.ToString())}}}.");
+            }
 
             return status;
         }
